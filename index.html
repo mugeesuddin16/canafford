@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Money Decision Engine — Can You Actually Afford It?</title>
+<meta name="description" content="Enter your income and a purchase you're considering — a car, a loan, a big expense — and see the real before/after impact on your monthly cash and long-term wealth.">
+
+<!-- Favicon: inline emoji, no separate file needed -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
+
+<!-- Social preview: Open Graph (Facebook, WhatsApp, LinkedIn, iMessage) -->
+<meta property="og:title" content="Money Decision Engine">
+<meta property="og:description" content="Can you actually afford it? Enter your numbers and see the real before/after impact — not just a monthly balance.">
+<meta property="og:image" content="og-image.png">
+<meta property="og:type" content="website">
+<!-- IMPORTANT: once this is live, replace the line below with your real URL, e.g. https://yourusername.github.io/money-decision-engine/ -->
+<meta property="og:url" content="https://yourusername.github.io/money-decision-engine/">
+
+<!-- Social preview: Twitter/X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Money Decision Engine">
+<meta name="twitter:description" content="Can you actually afford it? A real before/after calculation, not just a monthly balance.">
+<meta name="twitter:image" content="og-image.png">
+
+<!--
+  ANALYTICS (optional): to see how many people actually use this tool,
+  sign up free at https://plausible.io or https://analytics.google.com,
+  then paste the tracking snippet they give you right here, replacing this comment.
+  Google Analytics (GA4) example:
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXX');
+  </script>
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F6F2;
+    --paper-alt:#EFF0EA;
+    --ink:#1C2430;
+    --ink-soft:#5B6270;
+    --line:#D8D9D2;
+    --green:#1F6D4C;
+    --green-bg:#E8F0EA;
+    --rust:#A6432E;
+    --rust-bg:#F3E7E3;
+    --gold:#9C7A34;
+    --gray:#7C8175;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:660px;
+    margin:0 auto;
+    padding:56px 24px 100px;
+  }
+  header{margin-bottom:44px;}
+  .kicker{
+    font-size:13px;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-size:38px;
+    line-height:1.15;
+    margin:0 0 14px;
+    letter-spacing:-0.01em;
+  }
+  h1 em{font-style:italic; color:var(--green);}
+  .lede{
+    font-size:16px;
+    line-height:1.55;
+    color:var(--ink-soft);
+    max-width:52ch;
+  }
+  .rule{
+    border:none;
+    border-top:1px solid var(--line);
+    margin:40px 0;
+  }
+  section h2{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-size:20px;
+    margin:0 0 4px;
+  }
+  section .sub{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin:0 0 22px;
+  }
+  .mode-toggle{
+    display:flex;
+    gap:0;
+    margin-bottom:28px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .mode-toggle button{
+    flex:1;
+    padding:11px 14px;
+    background:transparent;
+    border:none;
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;
+    font-weight:500;
+    color:var(--ink-soft);
+    cursor:pointer;
+    border-right:1px solid var(--line);
+  }
+  .mode-toggle button:last-child{border-right:none;}
+  .mode-toggle button.active{
+    background:var(--ink);
+    color:var(--paper);
+  }
+  .field-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    margin-bottom:18px;
+  }
+  .field{margin-bottom:18px;}
+  .field label{
+    display:block;
+    font-size:13px;
+    font-weight:500;
+    color:var(--ink-soft);
+    margin-bottom:7px;
+  }
+  .field .hint{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    opacity:0.75;
+    margin-top:5px;
+  }
+  .input-row{
+    display:flex;
+    align-items:stretch;
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:#fff;
+    overflow:hidden;
+  }
+  .input-row select{
+    border:none;
+    background:var(--paper-alt);
+    padding:0 10px;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    color:var(--ink);
+    border-right:1px solid var(--line);
+    cursor:pointer;
+  }
+  .input-row input, .field select.full{
+    flex:1;
+    border:none;
+    padding:11px 12px;
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    color:var(--ink);
+    background:transparent;
+    width:100%;
+    min-width:0;
+  }
+  .field select.full{
+    border:1px solid var(--line);
+    border-radius:6px;
+    background:#fff;
+  }
+  input:focus, select:focus{outline:2px solid var(--green); outline-offset:-1px;}
+  .cta{
+    margin-top:8px;
+    width:100%;
+    padding:15px;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:6px;
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    letter-spacing:0.01em;
+  }
+  .cta:hover{background:#2B3444;}
+
+  /* results */
+  #results{display:none;}
+  .verdict{
+    padding:18px 20px;
+    border-radius:6px;
+    margin-bottom:32px;
+    font-family:'Fraunces',serif;
+    font-size:18px;
+    line-height:1.5;
+  }
+  .verdict.good{background:var(--green-bg); color:#154D37;}
+  .verdict.warn{background:#FBF1DF; color:#7A5A19;}
+  .verdict.bad{background:var(--rust-bg); color:#7A2E1D;}
+
+  .ledger-block{margin-bottom:28px;}
+  .ledger-title{
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    color:var(--ink-soft);
+    margin-bottom:10px;
+  }
+  .bar{
+    display:flex;
+    height:34px;
+    border-radius:4px;
+    overflow:hidden;
+    margin-bottom:14px;
+  }
+  .bar div{height:100%;}
+  .seg-expenses{background:var(--gray);}
+  .seg-emi{background:var(--rust);}
+  .seg-invest{background:var(--green);}
+  .seg-avail{background:var(--gold);}
+
+  .ledger-line{
+    display:flex;
+    justify-content:space-between;
+    padding:8px 0;
+    border-bottom:1px solid var(--line);
+    font-size:14.5px;
+  }
+  .ledger-line:last-child{border-bottom:none; font-weight:600;}
+  .ledger-line .dot{
+    display:inline-block;
+    width:8px;height:8px;
+    border-radius:50%;
+    margin-right:8px;
+    position:relative;
+    top:-1px;
+  }
+  .num{font-variant-numeric:tabular-nums; font-family:'Inter',sans-serif;}
+
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    margin:14px 0 6px;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .legend span{display:flex; align-items:center; gap:6px;}
+  .legend .dot{width:8px;height:8px;border-radius:50%;}
+
+  .proj-table{width:100%; border-collapse:collapse; margin-top:6px;}
+  .proj-table th{
+    text-align:right;
+    font-size:12px;
+    font-weight:500;
+    color:var(--ink-soft);
+    padding:8px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .proj-table th:first-child{text-align:left;}
+  .proj-table td{
+    text-align:right;
+    padding:10px 0;
+    font-size:15px;
+    border-bottom:1px solid var(--line);
+    font-variant-numeric:tabular-nums;
+  }
+  .proj-table td:first-child{text-align:left; color:var(--ink-soft); font-size:13.5px;}
+  .proj-table .diff-pos{color:var(--green); font-weight:600;}
+  .proj-table .diff-neg{color:var(--rust); font-weight:600;}
+
+  .note{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:18px;
+    line-height:1.6;
+  }
+
+  footer{
+    margin-top:60px;
+    padding-top:24px;
+    border-top:1px solid var(--line);
+    font-size:12.5px;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+
+  @media (max-width:480px){
+    h1{font-size:30px;}
+    .field-row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">Money Decision Engine</div>
+    <h1>Can you actually<br><em>afford it?</em></h1>
+    <p class="lede">Not a budget tracker. Answer one real decision — a car, a move, a big purchase — and see exactly what it costs your future, not just your monthly balance.</p>
+  </header>
+
+  <hr class="rule">
+
+  <section>
+    <h2>1. Your numbers</h2>
+    <p class="sub">What comes in and what's already spoken for, every month.</p>
+
+    <div class="field">
+      <label>Currency</label>
+      <select class="full" id="currency">
+        <option value="$">$ — USD / CAD / AUD</option>
+        <option value="₹">₹ — INR</option>
+        <option value="€">€ — EUR</option>
+        <option value="£">£ — GBP</option>
+        <option value="¥">¥ — JPY / CNY</option>
+        <option value="R$">R$ — BRL</option>
+        <option value="₦">₦ — NGN</option>
+        <option value="">— other (no symbol)</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Monthly take-home income</label>
+      <div class="input-row">
+        <span id="sym1" class="input-row-sym" style="padding:0 4px 0 12px; display:flex; align-items:center; color:var(--ink-soft);">$</span>
+        <input type="number" id="income" placeholder="4,500" inputmode="decimal">
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Fixed monthly expenses</label>
+        <div class="input-row">
+          <span class="sym" style="padding:0 4px 0 12px; display:flex; align-items:center; color:var(--ink-soft);">$</span>
+          <input type="number" id="expenses" placeholder="1,800" inputmode="decimal">
+        </div>
+        <div class="hint">Rent, food, utilities, insurance — everything essential.</div>
+      </div>
+      <div class="field">
+        <label>Existing loan/debt payments</label>
+        <div class="input-row">
+          <span class="sym" style="padding:0 4px 0 12px; display:flex; align-items:center; color:var(--ink-soft);">$</span>
+          <input type="number" id="existingEmi" placeholder="0" inputmode="decimal">
+        </div>
+        <div class="hint">Any current EMIs, loans, credit payments.</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>What you currently invest or save each month</label>
+      <div class="input-row">
+        <span class="sym" style="padding:0 4px 0 12px; display:flex; align-items:center; color:var(--ink-soft);">$</span>
+        <input type="number" id="currentInvest" placeholder="800" inputmode="decimal">
+      </div>
+      <div class="hint">Whatever isn't spent gets treated as "available" cash below.</div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <h2>2. The decision</h2>
+    <p class="sub">What are you actually trying to decide?</p>
+
+    <div class="mode-toggle">
+      <button id="modeLoanBtn" class="active">Financed purchase (loan / EMI)</button>
+      <button id="modeOneBtn">One-time expense</button>
+    </div>
+
+    <div id="loanFields">
+      <div class="field">
+        <label>Purchase price</label>
+        <div class="input-row">
+          <span class="sym" style="padding:0 4px 0 12px; display:flex; align-items:center; color:var(--ink-soft);">$</span>
+          <input type="number" id="purchasePrice" placeholder="35,000" inputmode="decimal">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Down payment</label>
+          <div class="input-row">
+            <span class="sym" style="padding:0 4px 0 12px; display:flex; align-items:center; color:var(--ink-soft);">$</span>
+            <input type="number" id="downPayment" placeholder="5,000" inputmode="decimal">
+          </div>
+        </div>
+        <div class="field">
+          <label>Loan term (years)</label>
+          <input type="number" id="loanTerm" placeholder="5" inputmode="decimal">
+        </div>
+      </div>
+      <div class="field">
+        <label>Annual interest rate (%)</label>
+        <input type="number" id="interestRate" placeholder="7" inputmode="decimal" style="border:1px solid var(--line); border-radius:6px; padding:11px 12px; width:100%; font-size:15px; font-family:'Inter',sans-serif;">
+      </div>
+    </div>
+
+    <div id="oneFields" style="display:none;">
+      <div class="field">
+        <label>Cost of the purchase</label>
+        <div class="input-row">
+          <span class="sym" style="padding:0 4px 0 12px; display:flex; align-items:center; color:var(--ink-soft);">$</span>
+          <input type="number" id="oneAmount" placeholder="2,000" inputmode="decimal">
+        </div>
+        <div class="hint">A vacation, a gadget, a one-off cost paid in cash — not financed.</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Assumed annual investment return</label>
+      <input type="number" id="returnRate" value="7" inputmode="decimal" style="border:1px solid var(--line); border-radius:6px; padding:11px 12px; width:100%; font-size:15px; font-family:'Inter',sans-serif;">
+      <div class="hint">Used only to project what your money could grow into. 7% is a common long-term market average — change it if you'd rather be more conservative.</div>
+    </div>
+
+    <div id="formError" style="display:none; background:var(--rust-bg); color:#7A2E1D; padding:12px 16px; border-radius:6px; font-size:13.5px; margin-bottom:14px; line-height:1.5;"></div>
+    <button class="cta" onclick="calculate()">Show me the decision</button>
+  </section>
+
+  <div id="results">
+    <hr class="rule">
+    <section>
+      <h2>3. The decision</h2>
+      <div id="verdict" class="verdict"></div>
+
+      <div class="ledger-block">
+        <div class="ledger-title">BEFORE</div>
+        <div class="bar" id="barBefore"></div>
+        <div id="linesBefore"></div>
+      </div>
+
+      <div class="ledger-block">
+        <div class="ledger-title" id="afterLabel">AFTER</div>
+        <div class="bar" id="barAfter"></div>
+        <div id="linesAfter"></div>
+      </div>
+
+      <div class="legend">
+        <span><span class="dot" style="background:var(--gray)"></span>Expenses</span>
+        <span><span class="dot" style="background:var(--rust)"></span>Loan / EMI</span>
+        <span><span class="dot" style="background:var(--green)"></span>Investing</span>
+        <span><span class="dot" style="background:var(--gold)"></span>Available</span>
+      </div>
+    </section>
+
+    <hr class="rule">
+
+    <section>
+      <h2>4. What this costs you long-term</h2>
+      <p class="sub">If you keep investing the "before" vs "after" amount every month, at your assumed return.</p>
+      <table class="proj-table" id="projTable">
+        <thead>
+          <tr><th>Time</th><th>Without purchase</th><th>With purchase</th><th>Difference</th></tr>
+        </thead>
+        <tbody id="projBody"></tbody>
+      </table>
+      <p class="note" id="assetNote"></p>
+    </section>
+  </div>
+
+  <footer>Money Decision Engine — a calculation, not advice. Run your own numbers before deciding.</footer>
+</div>
+
+<script>
+let mode = 'loan';
+const modeLoanBtn = document.getElementById('modeLoanBtn');
+const modeOneBtn = document.getElementById('modeOneBtn');
+modeLoanBtn.onclick = () => { mode='loan'; modeLoanBtn.classList.add('active'); modeOneBtn.classList.remove('active'); document.getElementById('loanFields').style.display='block'; document.getElementById('oneFields').style.display='none'; };
+modeOneBtn.onclick = () => { mode='one'; modeOneBtn.classList.add('active'); modeLoanBtn.classList.remove('active'); document.getElementById('oneFields').style.display='block'; document.getElementById('loanFields').style.display='none'; };
+
+const currencySel = document.getElementById('currency');
+currencySel.onchange = () => {
+  const sym = currencySel.value || '';
+  document.querySelectorAll('.sym, #sym1').forEach(el => el.textContent = sym);
+};
+
+function fmt(n, sym){
+  const s = Math.round(n).toLocaleString();
+  return (sym||'') + s;
+}
+
+function emi(principal, annualRatePct, years){
+  const n = years*12;
+  const r = (annualRatePct/100)/12;
+  if(r === 0) return principal/n;
+  return principal * r * Math.pow(1+r,n) / (Math.pow(1+r,n)-1);
+}
+
+function fv(monthly, annualRatePct, months){
+  const i = (annualRatePct/100)/12;
+  if(i===0) return monthly*months;
+  return monthly * ((Math.pow(1+i,months)-1)/i);
+}
+
+function showFormError(msg){
+  const el = document.getElementById('formError');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function calculate(){
+  const errorEl = document.getElementById('formError');
+  errorEl.style.display = 'none';
+
+  const sym = currencySel.value || '';
+  const income = parseFloat(document.getElementById('income').value) || 0;
+  const expenses = parseFloat(document.getElementById('expenses').value) || 0;
+  const existingEmi = parseFloat(document.getElementById('existingEmi').value) || 0;
+  const currentInvest = parseFloat(document.getElementById('currentInvest').value) || 0;
+  const returnRate = parseFloat(document.getElementById('returnRate').value) || 7;
+
+  // --- validation ---
+  const rawIncome = document.getElementById('income').value;
+  if(!rawIncome || income <= 0){
+    showFormError('Enter your monthly income to continue — it needs to be a number greater than 0.');
+    return;
+  }
+  const numericFields = [
+    ['expenses', expenses], ['existingEmi', existingEmi], ['currentInvest', currentInvest]
+  ];
+  for(const [id, val] of numericFields){
+    if(val < 0){ showFormError('Amounts can\'t be negative — check the field for ' + id.replace(/([A-Z])/g,' $1').toLowerCase() + '.'); return; }
+  }
+  if(returnRate < 0 || returnRate > 30){
+    showFormError('The assumed annual return looks off — enter a realistic percentage (0–30%).');
+    return;
+  }
+  if(mode === 'loan'){
+    const price = parseFloat(document.getElementById('purchasePrice').value) || 0;
+    const down = parseFloat(document.getElementById('downPayment').value) || 0;
+    const years = parseFloat(document.getElementById('loanTerm').value) || 0;
+    const rate = parseFloat(document.getElementById('interestRate').value) || 0;
+    if(price <= 0){ showFormError('Enter the purchase price to continue.'); return; }
+    if(down < 0 || down > price){ showFormError('Down payment can\'t be negative or larger than the purchase price.'); return; }
+    if(years <= 0){ showFormError('Enter a loan term greater than 0 years.'); return; }
+    if(rate < 0 || rate > 40){ showFormError('The interest rate looks off — enter a realistic percentage.'); return; }
+  } else {
+    const oneAmount = parseFloat(document.getElementById('oneAmount').value) || 0;
+    if(oneAmount <= 0){ showFormError('Enter the cost of the purchase to continue.'); return; }
+  }
+  // --- end validation ---
+
+  const discretionaryBefore = income - expenses - existingEmi;
+  const availBefore = discretionaryBefore - currentInvest;
+  const investRatio = discretionaryBefore > 0 ? (currentInvest/discretionaryBefore) : 0;
+
+  let newRecurringCost = 0;
+  let isOneTime = false;
+  let oneTimeAmount = 0;
+
+  if(mode === 'loan'){
+    const price = parseFloat(document.getElementById('purchasePrice').value) || 0;
+    const down = parseFloat(document.getElementById('downPayment').value) || 0;
+    const years = parseFloat(document.getElementById('loanTerm').value) || 1;
+    const rate = parseFloat(document.getElementById('interestRate').value) || 0;
+    const principal = Math.max(price - down, 0);
+    newRecurringCost = emi(principal, rate, years);
+  } else {
+    isOneTime = true;
+    oneTimeAmount = parseFloat(document.getElementById('oneAmount').value) || 0;
+  }
+
+  const totalEmiAfter = isOneTime ? existingEmi : existingEmi + newRecurringCost;
+  const discretionaryAfter = income - expenses - totalEmiAfter;
+  let investAfter = discretionaryAfter > 0 ? discretionaryAfter * investRatio : 0;
+  let availAfter = discretionaryAfter - investAfter;
+
+  // one-time expense: treat as a single month hit split from current investing+available pool,
+  // but for the recurring monthly picture afterward, things return to "before" state.
+  // So for one-time, show impact as: this month only draws down oneTimeAmount from available+investing.
+  let oneTimeVerdictExtra = '';
+  if(isOneTime){
+    investAfter = currentInvest; // recurring unaffected long-term
+    availAfter = availBefore - 0; // monthly unaffected long term, one-time hit shown separately
+  }
+
+  // verdict
+  const verdictEl = document.getElementById('verdict');
+  verdictEl.className = 'verdict';
+  let verdictText = '';
+
+  if(!isOneTime){
+    if(discretionaryAfter < 0){
+      verdictEl.classList.add('bad');
+      verdictText = `This isn't affordable right now. After this payment, your fixed costs would exceed your income by ${fmt(Math.abs(discretionaryAfter), sym)}/month.`;
+    } else if(investAfter < currentInvest * 0.5 && currentInvest > 0){
+      verdictEl.classList.add('warn');
+      verdictText = `You can technically afford it, but your investing drops from ${fmt(currentInvest,sym)} to ${fmt(investAfter,sym)}/month — a cut of over half. That's a real trade-off, not a small one.`;
+    } else {
+      verdictEl.classList.add('good');
+      verdictText = `This looks affordable. Your investing goes from ${fmt(currentInvest,sym)} to ${fmt(investAfter,sym)}/month, and you'd still have ${fmt(availAfter,sym)} available each month.`;
+    }
+  } else {
+    if(oneTimeAmount > (availBefore + currentInvest)){
+      verdictEl.classList.add('bad');
+      verdictText = `This would cost more than your entire monthly discretionary cash (${fmt(availBefore+currentInvest,sym)}). It would have to come from savings, not this month's income.`;
+    } else if(oneTimeAmount > availBefore){
+      verdictEl.classList.add('warn');
+      verdictText = `Covering this fully from spare cash would eat into money you'd normally invest this month.`;
+    } else {
+      verdictEl.classList.add('good');
+      verdictText = `This fits comfortably within your monthly available cash (${fmt(availBefore,sym)}) without touching what you invest.`;
+    }
+  }
+  verdictEl.textContent = verdictText;
+
+  // bars
+  function renderBar(elId, exp, emiVal, inv, avail, total){
+    const el = document.getElementById(elId);
+    el.innerHTML = '';
+    const segs = [
+      {cls:'seg-expenses', val:exp},
+      {cls:'seg-emi', val:emiVal},
+      {cls:'seg-invest', val:inv},
+      {cls:'seg-avail', val:Math.max(avail,0)}
+    ];
+    segs.forEach(s => {
+      if(s.val <= 0) return;
+      const d = document.createElement('div');
+      d.className = s.cls;
+      d.style.width = (s.val/total*100)+'%';
+      el.appendChild(d);
+    });
+  }
+
+  function renderLines(elId, income, exp, emiVal, inv, avail){
+    const el = document.getElementById(elId);
+    el.innerHTML = `
+      <div class="ledger-line"><span>Income</span><span class="num">${fmt(income,sym)}</span></div>
+      <div class="ledger-line"><span><span class="dot" style="background:var(--gray)"></span>Expenses</span><span class="num">−${fmt(exp,sym)}</span></div>
+      ${emiVal>0 ? `<div class="ledger-line"><span><span class="dot" style="background:var(--rust)"></span>Loan / EMI</span><span class="num">−${fmt(emiVal,sym)}</span></div>` : ''}
+      <div class="ledger-line"><span><span class="dot" style="background:var(--green)"></span>Investing</span><span class="num">−${fmt(inv,sym)}</span></div>
+      <div class="ledger-line"><span><span class="dot" style="background:var(--gold)"></span>Available</span><span class="num">${fmt(avail,sym)}</span></div>
+    `;
+  }
+
+  const total = income;
+  if(!isOneTime){
+    renderBar('barBefore', expenses, existingEmi, currentInvest, availBefore, total);
+    renderLines('linesBefore', income, expenses, existingEmi, currentInvest, availBefore);
+    document.getElementById('afterLabel').textContent = 'AFTER';
+    renderBar('barAfter', expenses, totalEmiAfter, investAfter, availAfter, total);
+    renderLines('linesAfter', income, expenses, totalEmiAfter, investAfter, availAfter);
+  } else {
+    renderBar('barBefore', expenses, existingEmi, currentInvest, availBefore, total);
+    renderLines('linesBefore', income, expenses, existingEmi, currentInvest, availBefore);
+    document.getElementById('afterLabel').textContent = 'THIS MONTH, IF YOU BUY IT';
+    const availThisMonth = availBefore - oneTimeAmount;
+    renderBar('barAfter', expenses, existingEmi, currentInvest, availThisMonth, total);
+    renderLines('linesAfter', income, expenses, existingEmi, currentInvest, availThisMonth);
+  }
+
+  // projection table
+  const periods = [{label:'1 year', months:12},{label:'3 years', months:36},{label:'5 years', months:60}];
+  const projBody = document.getElementById('projBody');
+  projBody.innerHTML = '';
+
+  periods.forEach(p => {
+    let fvBefore = fv(currentInvest, returnRate, p.months);
+    let fvAfter;
+    if(!isOneTime){
+      fvAfter = fv(investAfter, returnRate, p.months);
+    } else {
+      // one time: lump sum not invested, growing at same rate, subtracted from before-scenario wealth
+      const lostGrowth = oneTimeAmount * Math.pow(1+(returnRate/100)/12, p.months);
+      fvAfter = fvBefore - lostGrowth;
+    }
+    const diff = fvAfter - fvBefore;
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${p.label}</td>
+      <td>${fmt(fvBefore, sym)}</td>
+      <td>${fmt(fvAfter, sym)}</td>
+      <td class="${diff<0?'diff-neg':'diff-pos'}">${diff<0?'−':'+'}${fmt(Math.abs(diff), sym)}</td>
+    `;
+    projBody.appendChild(row);
+  });
+
+  document.getElementById('assetNote').textContent = isOneTime
+    ? "This shows lost investment growth only — it doesn't account for any value or memories the purchase itself gives you."
+    : "This shows investment growth only — it doesn't include any resale value of what you're buying (a car depreciates, a house may appreciate). Add that separately for a fuller picture.";
+
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth'});
+}
+</script>
+</body>
+</html>
