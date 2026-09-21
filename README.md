@@ -4,7 +4,7 @@ A calculator that answers real money decisions — "Can I afford this?" — by s
 
 Not a budget tracker. Not generic advice. A personalized calculation for one decision at a time.
 
-Try it live → <!-- replace with your GitHub Pages URL once live -->
+Try it live →  https://mugeesuddin16.github.io/canafford/
 
 What it does
 
@@ -28,9 +28,9 @@ Running it locally
 No installation needed — it's a single static file.
 
 Clone this repo:
-   git clone https://github.com/yourusername/money-decision-engine.git
+   git clone https://github.com/mugeesuddin16/canafford.git
 Open index.html directly in your browser, or serve it locally:
-   cd money-decision-engine
+   cd canafford
    python3 -m http.server 8000
 
 Then visit http://localhost:8000
